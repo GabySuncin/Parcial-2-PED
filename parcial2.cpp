@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
-// Gabriela Sarai Valencia Suncin+
+#include <list>
+
 
 struct Member {
   std::string first_name;
@@ -11,48 +12,46 @@ struct Member {
 struct Club {
   std::string name;
   std::string creation_date;
-  int max_capacity;
-  int currentMembers;
-  Member *members;
+  std::list<Member> members;
 };
 
 // Main Functions
-void CreateClub(Club clubs[], int &num_clubs, int max_clubs);
-void ListClubs(Club clubs[], int num_clubs);
-void TotalMembers(Club &club);
-void RegisterMember(Club &club);
-void ListMemebers(Club &club);
+void CreateClub(std::list<Club>& clubs);
+void ListClubs(std::list<Club> clubs);
+void TotalMembers(std::list <Club> clubs);
+void RegisterMember(std::list <Club>& clubs);
+void ListMemebers(std::list <Club> clubs);
+
 // Auxiliar Functions
-int AskClubPosition();
+Club FindClub(std::list <Club> clubs);
 void OptionMainMenu(int &);
 
 int main(int argc, char *argv[]) {
-  int menuOption = 0, num_clubs = 0, maxClubs = 0;
-  std::cout << "\nEscriba la capacidad maxima de clubes que pueden existir: ";
-  std::cin >> maxClubs;
-  Club clubs[maxClubs];
+  int menuOption = 0;
+  
+  std::list<Club> clubs;
 
   do {
     OptionMainMenu(menuOption);
 
     switch (menuOption) {
       case 1:
-        CreateClub(clubs, num_clubs, maxClubs);
+        CreateClub(clubs);
         break;
 
       case 2:
-        ListClubs(clubs, num_clubs);
+        ListClubs(clubs);
         break;
 
       case 3:
-        TotalMembers(clubs[AskClubPosition()]);
+        TotalMembers(clubs);
         break;
       case 4:
-        RegisterMember(clubs[AskClubPosition()]);
+        RegisterMember(clubs);
         break;
 
       case 5:
-        ListMemebers(clubs[AskClubPosition()]);
+        ListMemebers(clubs);
         break;
 
       case 6:
@@ -70,88 +69,93 @@ int main(int argc, char *argv[]) {
 }
 
 // Funciones Principales
-void CreateClub(Club clubs[], int &num_clubs,
-                int max_clubs) {  // Funcion para Crear un Club
-  if (num_clubs < max_clubs) {
-    std::cout << "\nClub # " << num_clubs + 1 << ": " << std::endl;
-    std::cout << "Ingrese el nombre del club: ";
-    std::cin.ignore();
-    getline(std::cin, clubs[num_clubs].name);
-    std::cout << "Ingrese el fecha de creacion del club(DD/MM/YY): ";
-    getline(std::cin, clubs[num_clubs].creation_date);
-    std::cout << "Ingrese la capacidad maxima de miembros: ";
-    std::cin >> clubs[num_clubs].max_capacity;
-    clubs[num_clubs].members = new Member[clubs[num_clubs].max_capacity];
-    clubs[num_clubs].currentMembers = 0;
+void CreateClub(std::list<Club>& clubs) {  // Funcion para Crear un Club
+  Club club; 
+  std::cout << "Ingrese el nombre del Club: ";
+  std::cin.ignore();
+  getline(std::cin, club.name);
+  std::cout << "Ingrese el dia en que se creó el club: "; 
+  getline(std::cin, club.creation_date);
 
-    num_clubs++;
+  clubs.push_front(club);
+}
 
-  } else {
-    std::cout << "\nHa alcanzado el maximo numero de clubes, por lo que no es "
-                 "posible agregar otro"
-              << std::endl;
+void ListClubs(std::list<Club> clubs) {  // Funcion para Mostrar Clubes
+  
+  if (clubs.empty()) {
+    std::cout << "La Lista de Clubes esta vacia" << std::endl; 
+  }
+  
+  std::list<Club> tempClubs; 
+  tempClubs = clubs; 
+  while (!tempClubs.empty()) {
+    Club tempClub = tempClubs.front();
+    std::cout << "------- " << tempClub.name << " -------" << std::endl;
+    std::cout << "Dia de creación: " << tempClub.creation_date << std::endl; 
+    std::cout << "Miembros del club actuales: " << tempClub.members.size() <<std::endl;
+    tempClubs.pop_front(); 
   }
 }
 
-void ListClubs(Club clubs[], int num_clubs) {  // Funcion para Mostrar Clubes
-  std::cout << std::endl;
-  for (int i = 0; i < num_clubs; i++) {
-    std::cout << "Club # " << i + 1 << ": " << clubs[i].name
-              << " con fecha de creacion de " << clubs[i].creation_date
-              << " y con una capacidad maxima de miembros de "
-              << clubs[i].max_capacity << std::endl;
+void TotalMembers(std::list <Club> clubs) { // Funcion para mostrar el total de miembros de un club
+  
+  if (clubs.empty()) {
+    std::cout << "La Lista de Clubes esta vacia" << std::endl; 
   }
+
+  Club clubFound = FindClub(clubs);
+  
+  std::cout << "La cantidad de miembros del club: " << clubFound.name << "es "<< clubFound.members.size() <<std::endl; 
+  
 }
 
-void TotalMembers(
-    Club &club) {  // Funcion para mostrar el total de miembros de un club
-  std::cout << "\nEl total de miembros del club " << club.name
-            << " es: " << club.currentMembers << std::endl;
-}
-
-void RegisterMember(
-    Club &club) {  // Funcion para registrar un miembro en un club
-  if (club.currentMembers >= club.max_capacity) {
-    std::cout << "\nHa excedido la maxima capacidad de miembros permitidos"
-              << std::endl;
-  } else {
-    std::cout << "\nMiembro # " << club.currentMembers + 1 << ": " << std::endl;
-    std::cout << "Ingrese el nombre del miembro: ";
-    std::cin.ignore();
-    getline(std::cin, club.members[club.currentMembers].first_name);
-    std::cout << "Ingrese el apellido del miembro: ";
-    getline(std::cin, club.members[club.currentMembers].last_name);
-    std::cout << "Ingrese la edad del miembro: ";
-    std::cin >> club.members[club.currentMembers].age;
-
-    club.currentMembers++;
+void RegisterMember(std::list <Club>& clubs) {  // Funcion para registrar un miembro en un club
+  if (clubs.empty()) {
+    std::cout << "La Lista de Clubes esta vacia" << std::endl; 
   }
+  
+  Club clubFound = FindClub(clubs);
+  Member tempMember; 
+  std::cout << "Ingrese el nombre del miembro: ";
+  std::cin.ignore();
+  getline(std::cin,tempMember.first_name);
+  std::cout << "Ingrese el apellido del miembro: ";
+  getline(std::cin,tempMember.last_name);
+  std::cout << "Ingrese la edad del miembro: "; 
+  std::cin >> tempMember.age;
+
+  clubFound.members.push_front(tempMember);
+
 }
 
-void ListMemebers(Club &club) {  // Funcion para mostrar miembros de un club
+void ListMemebers(std::list <Club> clubs) {  // Funcion para mostrar miembros de un club
+  Club clubFound = FindClub(clubs);
+  std::list<Member> members = clubFound.members;
 
-  if (club.currentMembers == 0) {
-    std::cout << "\nNo hay miembros que mostrar" << std::endl;
-  } else {
-    std::cout << "Lista de miembros del club " << club.name << ": ";
-    std::cout << std::endl;
-    for (int i = 0; i <= club.currentMembers; i++) {
-      std::cout << club.members[i].first_name << " "
-                << club.members[i].last_name << " con " << club.members[i].age
-                << " años." << std::endl;
-    }
+  std::cout << "-----MIEMBROS-----" << std::endl; 
+  while (!members.empty()) {
+    Member tempMember = members.front();
+    std::cout << "Nombre: " << tempMember.first_name << ", Apellido: " << tempMember.last_name << ", Edad: " << tempMember.age << std::endl;
+    members.pop_front();
   }
 }
 
 // Funciones Auxiliares
-int AskClubPosition() {  // Funcion para pedir numero de club
-  int clubPosition;
-  std::cout << "\nIngrese el numero del club: ";
-  std::cin >> clubPosition;
-
-  clubPosition = clubPosition - 1;
-
-  return clubPosition;
+Club FindClub(std::list <Club> clubs) {  // Funcion para encontrar club
+  std::string clubName; 
+  std::cout << "\nEscriba el nombre del club: ";
+  std::cin.ignore();
+  getline (std::cin, clubName);
+  
+  std::list<Club> tempClubs;
+  tempClubs = clubs; 
+  while (!tempClubs.empty()) {
+    Club tempClub = tempClubs.front();
+    if (tempClub.name == clubName) {
+      return tempClub;
+    }
+    tempClubs.pop_front(); 
+  } 
 }
 
 void OptionMainMenu(int &option) {  // Funcion que muestra y pide opcion de menu
